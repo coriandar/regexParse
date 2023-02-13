@@ -43,6 +43,7 @@ function stringPerDay(input) {
     return output;
 }
 
+
 function removeDay(input) {
     const array  = input;
     for (let i = 0; i <= 47; i++) {
@@ -51,15 +52,54 @@ function removeDay(input) {
     return array;
 }
 
+function getDay(input) {
+    const array  = [];
+    for (let i = 0; i <= 47; i++) {
+        array.push(input[i]);
+    }
+    return array;
+}
+
+function createWeek(input) {
+    const week = [];
+    for (let i = 0; i < 7; i++) {
+        week.push(getDay(input));
+        removeDay(input);
+    }
+
+    const weekCleaned = [];
+    for (let i = 0; i < week.length - 1; i++) {
+        if (week[i][0] !== undefined) {
+            weekCleaned.push(week[i]);
+        }
+    }
+    return weekCleaned;
+}
+
+function createTable(input) {
+    const week = createWeek(input);
+    let string = '';
+
+    const length = week.length - 1;
+
+    for (let i = 0; i <= 47; i++) {
+        for (let j = length; j >= 0; --j) {
+            string += week[j][i];
+            if (j !== 0) {
+                string += '\t';
+            }
+
+            if (j === 0 && i !== 47) {
+                string += '\n';
+            }
+        }
+    }
+    return string;
+}
+
 function showOnInput() {
     const input = document.querySelector('#input');
-    const output1 = document.querySelector('#output1');
-    const output2 = document.querySelector('#output2');
-    const output3 = document.querySelector('#output3');
-    const output4 = document.querySelector('#output4');
-    const output5 = document.querySelector('#output5');
-    const output6 = document.querySelector('#output6');
-    const output7 = document.querySelector('#output7');
+    const output = document.querySelector('#output');
     
     input.addEventListener('input', () => {
         const outputText = document.querySelector('#input').value;
@@ -67,16 +107,10 @@ function showOnInput() {
         out = sepValue(out);
         out = removeBloat(out);
         out = removeNewline(out);
-
+    
         const dayData = stringToArray(out);
         let outDay = stringPerDay(dayData);
-        output1.textContent = outDay;
-        output2.textContent = stringPerDay(removeDay(dayData));
-        output3.textContent = stringPerDay(removeDay(dayData));
-        output4.textContent = stringPerDay(removeDay(dayData));
-        output5.textContent = stringPerDay(removeDay(dayData));
-        output6.textContent = stringPerDay(removeDay(dayData));
-        output7.textContent = stringPerDay(removeDay(dayData));
+        output.textContent = createTable(dayData);
     })
 }
 

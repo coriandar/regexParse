@@ -1,116 +1,43 @@
 
-function sepLines(input) {
-    return input.replaceAll(' kWh </div></div>', '\n\n');
-}
-
-function sepValue(input) {
-    return input.replaceAll('1.4em>', '\n\n');
-}
-
-function removeBloat(input) {
-    return input.replace(/^.{20,}(\r?\n|$)/gm, '');
-}
-
-function removeNewline(input) {
-    return input.replace(/^\s*(\r?\n|$)/gm, '');
-}
-
-function stringToArray(input) {
-    const array = input.split('\n');
-    array.pop();
-    array.pop();
-    return array;
-}
-
-function stringPerDay(input) {
-    let output = '';
-    if (input.length >= 47) {
-        for(let i = 0; i <= 47; i++){
-            output += input[i];
-            if(i !== 47) {
-                output += '\n' ;
-            }
-        }
-    }
-    else {
-        for(let i = 0; i < input.length; i++){
-            output += input[i];
-            if(i !== input.length - 1) {
-                output += '\n' ;
-            }
-        }
-    }
-    return output;
-}
-
-
-function removeDay(input) {
-    const array  = input;
-    for (let i = 0; i <= 47; i++) {
-        array.shift();
-    }
-    return array;
-}
-
-function getDay(input) {
-    const array  = [];
-    for (let i = 0; i <= 47; i++) {
-        array.push(input[i]);
-    }
-    return array;
+function cleanData(input) {
+    input = input.replace(/(kWh|1.4em>)/gm, '\n'); // add seperator
+    input = input.replace(/^.{20,}(\r?\n|$)/gm, ''); // remove over 20chars
+    input = input.replace(/(\s+)$/gm, '\n'); // remove white space end of data
+    input = input.replace(/^\s*(\r?\n|$|)/gm, ''); // remove carriage & \n
+    return input;
 }
 
 function createWeek(input) {
+    // create array of max length 7
     const week = [];
-    for (let i = 0; i < 7; i++) {
-        week.push(getDay(input));
-        removeDay(input);
+    for (let i = 0; i < 8; i++) {
+        week.push(input.slice(0, 48)); // gets 0 -> 47
+        input.splice(0, 48); // removes 0 -> 47
     }
-
-    const weekCleaned = [];
-    for (let i = 0; i < week.length - 1; i++) {
-        if (week[i][0] !== undefined) {
-            weekCleaned.push(week[i]);
-        }
-    }
-    return weekCleaned;
+    return week.filter(currentDay => currentDay[0] !== undefined); // if index[0] of currentDay of week 
 }
 
-function createTable(input) {
-    const week = createWeek(input);
-    let string = '';
+function transformData(input) {
+    const week = createWeek(cleanData(input).split('\n').slice(0, -2)); // removes last 2 index
+    let weekData = '';
 
-    const length = week.length - 1;
-
-    for (let i = 0; i <= 47; i++) {
-        for (let j = length; j >= 0; --j) {
-            string += week[j][i];
-            if (j !== 0) {
-                string += '\t';
-            }
-
-            if (j === 0 && i !== 47) {
-                string += '\n';
-            }
+    // print in reverse order
+    for (let reading = 0; reading <= 47; reading++) {
+        for (let currentDay = week.length - 1; currentDay >= 0; --currentDay) {
+            weekData += week[currentDay][reading];
+            // can have nested ternary
+            weekData += currentDay !== 0 ? '\t' : (reading !== 47 ? '\n' : '');
         }
     }
-    return string;
+    return weekData;
 }
 
 function showOnInput() {
-    const input = document.querySelector('#input');
-    const output = document.querySelector('#output');
-    
-    input.addEventListener('input', () => {
-        const outputText = document.querySelector('#input').value;
-        let out  = sepLines(outputText);
-        out = sepValue(out);
-        out = removeBloat(out);
-        out = removeNewline(out);
-    
-        const dayData = stringToArray(out);
-        let outDay = stringPerDay(dayData);
-        output.textContent = createTable(dayData);
+    const inputData = document.querySelector('#inputData');
+    const outputData = document.querySelector('#outputData');
+
+    inputData.addEventListener('input', () => {
+        outputData.textContent = transformData(inputData.value);
     })
 }
 
